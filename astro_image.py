@@ -9,12 +9,12 @@ class Display:
         self.h = h
         self.button_in = Button(win, text="Show In", command=self.but_in_press)
         self.button_out = Button(win, text="Show Out", command=self.but_out_press)
+        self.button_proc = Button(win, text="Processing")
         self.threshold_slide = Scale(win, from_=0, to=255, label="Threshold", command=self.thresh_update, orient=HORIZONTAL)
         self.threshold_slide.set(100)
         self.grey_slide = Scale(win, from_=0, to=255, label="Grey level", command=self.grey_update, orient=HORIZONTAL)
         self.grey_slide.set(5)
         self.im_in = data
-        self.im_out = np.copy(data)
         self.show = "in"
         
     def show_image(self):
@@ -29,6 +29,7 @@ class Display:
         self.button_out.place(x=1100, y=10)
         self.threshold_slide.place(x=10, y=10)
         self.grey_slide.place(x=500, y=10)
+
 
     def but_out_press(self):
         self.show = "out"
@@ -46,19 +47,29 @@ class Display:
 
     def thresh_update(self, event):
         print(self.threshold_slide.get())
-        self.proc_img()
+        win.after(1000, self.do_process)
 
     def grey_update(self, event):
         print(self.grey_slide.get())
+        win.after(1000, self.do_process)
+
+    def do_process(self):
         self.proc_img()
 
     def proc_img(self):
+        self.im_out = np.copy(self.im_in)
         grey = self.grey_slide.get()
+        threshold = self.threshold_slide.get()
+        self.button_proc.place(x = self.w / 2, y = self.h /2)
+        win.update()
         for y in range(self.h - 1):
             for x in range(self.w - 1):
-                pxl = self.im_in[x, y]
-                if pxl[0] + pxl[1] + pxl[2] < self.threshold_slide.get():
-                    self.im_out[x,y] = (grey, grey, grey, 255)
+                pxl = self.im_in[y, x]
+                #print(f"X = {x}, Y = {y}, 0={pxl[0]}, 1={pxl[1]} 2={pxl[2]} added = {pxl[0] + pxl[1] + pxl[2]}")
+                if int(pxl[0]) + int(pxl[1]) + int(pxl[2]) < threshold:
+                    self.im_out[y, x] = (grey, grey, grey, 255)
+        self.button_proc.place_forget()
+        win.update()
 
 win = Tk()
 
